@@ -1,6 +1,26 @@
 from . import maps
 
 
+class Location:
+    def __init__(self, x=None, y=None):
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        # we masquerade as a tuple
+        return 2
+
+    def __getitem__(self, index):
+        assert type(index) is int and 0 <= index <= 1
+        return self.x if index == 0 else self.y
+
+    def __add__(self, other):
+        return Location(self.x + other[0], self.y + other[1])
+
+    def __sub__(self, other):
+        return Location(self.x - other[0], self.y - other[1])
+
+
 class Character:
     def __init__(self):
         self.location = None
@@ -10,15 +30,19 @@ class Character:
 
 
 class PacmanBoard:
-    WIDTH = 11 * 25
-    HEIGHT = 11 * 15
-
-    CLOSE = 6
+    # fraction of a cell
+    # paku & ghost collide with-in this distance
+    COLLISION_CLOSE = 0.4
+    # can corner inside this tolerance and actual location will be pushed on
+    # track
+    CORNER_CORRECT = 0.15
 
     #  Fickle, Chaser, Ambusher and Stupid
     #  Inky, Blinky, Pinky and Clyde
 
     def __init__(self):
+        self.map = None
+
         self.cookies = []
         self.pills = []
 
@@ -40,7 +64,44 @@ class PacmanBoard:
 
     @classmethod
     def is_close(cls, loc1, loc2):
-        return abs(loc1.x - loc2.x) + abs(loc1.y - loc2.y) < cls.CLOSE
+        return abs(loc1.x - loc2.x) + abs(loc1.y - loc2.y) < cls.COLLISION_CLOSE
+
+    def allowable_directions(self, loc, as_ghost):
+        dirs = [(0, 1), (1, 0), (-1, 0), (0, -1)]
+
+        walls = self.map.WALL | (self.map.GATE if not as_ghost else 0)
+
+        current = loc.rounded()
+        assert self.map.get[current] & walls == 0, "cannot go any direction _in_ a wall"
+
+        delta = loc - current
+
+        for direction in dirs:
+            limit = None
+
+            # TODO: If with-in CORNER_CORRECT perpendicular to direction then
+            # no need to check contact with diagonal cell
+
+            if direction[0] == 0 and abs(delta[0]) > self.CORNER_CORRECT:
+                delta1 = 1 if delta[0] > 0 else -1
+                diagonal = current + (delta1, direction[1])
+                if self.map[diagonal] & walls:
+                    limit = current + direction
+            if direction[1] == 0 and abs(delta[1]) > self.CORNER_CORRECT:
+                delta1 = 1 if delta[1] > 0 else -1
+                diagonal = current + (direction[0], delta1)
+                if self.map[diagonal] & walls:
+                    limit = current + direction
+
+            if limit is None:
+                step = current
+                while True:
+                    step = step + direction
+                    if self.map[step] & walls:
+                        limit = step
+                        break
+
+            # compare to limit
 
     def is_collided(self):
         ploc = self.paku.location

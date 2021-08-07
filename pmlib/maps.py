@@ -74,6 +74,8 @@ class PacmanMap:
 
         self.grid = [deserialize(ch) for line in lines for ch in line]
 
+        # TODO: assert that every side exit must have a corresponding opposite entry.
+
         return self
 
     def __getitem__(self, index):
