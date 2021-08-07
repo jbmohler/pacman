@@ -1,18 +1,4 @@
-# +-----------------------+
-# |oooooo*ooooooooo*oooooo|
-# oo+---------o---------+oo
-# |o|o*ooooooooooooooo*o|o|
-# |o+----o+-------+o----+o|
-# |ooooooooooooooooooooooo|
-# |o+----o|o+---+o|o----+o|
-# |o|o*ooo|o|xxx|o|ooo*o|o|
-# |o+o----+o+-x-+o+----o+o|
-# |ooooooo|ooo@ooo|ooooooo|
-# |o+----o+o-----o+o----+o|
-# |o|o*ooooooooooooooo*o|o|
-# oo+---------o---------+oo
-# |oooooo*ooooooooo*oooooo|
-# +-----------------------+
+from . import maps
 
 
 class Character:
@@ -43,7 +29,11 @@ class PacmanBoard:
         self.ghosts = None
 
     def load_from_string(self, s):
-        raise NotImplementedError()
+        self.map = maps.PacmanMap.from_str(s)
+
+        # record paku & ghost points
+
+        # record cookie and pill locations
 
     def is_cleared(self):
         return len(self.cookies) > 0
