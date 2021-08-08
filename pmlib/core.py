@@ -39,6 +39,7 @@ class PacmanBoard:
 
     #  Fickle, Chaser, Ambusher and Stupid
     #  Inky, Blinky, Pinky and Clyde
+    GHOST_COUNT = 4
 
     def __init__(self):
         self.map = None
@@ -55,9 +56,17 @@ class PacmanBoard:
     def load_from_string(self, s):
         self.map = maps.PacmanMap.from_str(s)
 
+        self.paku = Character()
+        self.ghosts = [Character() for _ in range(self.GHOST_COUNT)]
+
         # record paku & ghost points
+        self.paku.location = Location(*self.map.paku_location())
+
+        # TODO:  call re-home ghost?
 
         # record cookie and pill locations
+        self.cookies = self.map.cookie_locations()
+        self.pills = self.map.pill_locations()
 
     def is_cleared(self):
         return len(self.cookies) > 0
@@ -76,11 +85,14 @@ class PacmanBoard:
 
         delta = loc - current
 
+        results = {}
+
         for direction in dirs:
             limit = None
 
-            # TODO: If with-in CORNER_CORRECT perpendicular to direction then
-            # no need to check contact with diagonal cell
+            # If with-in CORNER_CORRECT perpendicular to direction then no need
+            # to check contact with diagonal cell, in that case the character
+            # motion code will first center on the perpendicular travel route.
 
             if direction[0] == 0 and abs(delta[0]) > self.CORNER_CORRECT:
                 delta1 = 1 if delta[0] > 0 else -1
@@ -102,31 +114,37 @@ class PacmanBoard:
                         break
 
             # compare to limit
+            results[direction] = limit
+
+        return results
 
     def is_collided(self):
         ploc = self.paku.location
         return any(self.is_close(ploc, ghost.location) for ghost in self.ghosts)
 
     def play_paku(self):
-        self.paku.logic(self, self.paku.state)
+        self.paku.logic(self, self.paku.location, self.paku.state)
 
         self.consume_cookie(self.paku.location)
         self.consume_pill(self.paku.location)
 
     def play_ghost(self, ghost):
-        ghost.logic(self, ghost.state)
+        ghost.logic(self, ghost.location, ghost.state)
 
     def rehome_ghost(self, ghost):
         raise NotImplementedError()
 
 
 def play(board, render, music):
+    render(board)
+
     while True:
         board.play_paku()
         for ghost in board.ghosts:
             board.play_ghost(ghost)
 
         if board.is_cleared():
+            render(board)
             music.happy()
             return True
 
@@ -134,6 +152,8 @@ def play(board, render, music):
             for ghost in board.ghosts:
                 if board.is_close(board.paku.location, ghost.location):
                     board.rehome_ghost(ghost)
+
+        render(board)
 
         if not board.empowered and board.is_collided():
             if board.retries > 0:

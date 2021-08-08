@@ -1,3 +1,5 @@
+import itertools
+
 # Map strings -- default dimensions 15 x 25
 
 LEVEL1 = """
@@ -84,14 +86,21 @@ class PacmanMap:
         # TODO :  is this really correct compared to the parser?
         return self.grid[index[0] * self.width + index[1]]
 
+    def _iter_element(self, elt):
+        for x, y in itertools.product(range(self.width), range(self.height)):
+            if self[x, y] & elt:
+                yield (x, y)
+
     def paku_location(self):
-        pass
+        pakus = list(self._iter_element(self.PAKU))
+        assert len(pakus) == 1
+        return pakus[0]
 
     def ghost_locations(self):
-        pass
+        return list(self._iter_element(self.GHOST))
 
     def pill_locations(self):
-        pass
+        return list(self._iter_element(self.PILL))
 
     def cookie_locations(self):
-        pass
+        return list(self._iter_element(self.COOKIE))
