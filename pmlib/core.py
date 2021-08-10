@@ -1,4 +1,5 @@
 from . import maps
+from . import ghost_ootb
 
 
 class Location:
@@ -36,6 +37,8 @@ class PacmanBoard:
     # can corner inside this tolerance and actual location will be pushed on
     # track
     CORNER_CORRECT = 0.15
+    # this is the minimal amount to a corner by an AI
+    WALL_BUMPER = 0.03
 
     #  Fickle, Chaser, Ambusher and Stupid
     #  Inky, Blinky, Pinky and Clyde
@@ -57,7 +60,9 @@ class PacmanBoard:
         self.map = maps.PacmanMap.from_str(s)
 
         self.paku = Character()
-        self.ghosts = [Character() for _ in range(self.GHOST_COUNT)]
+
+        glogic = ghost_ootb.simple_logic
+        self.ghosts = [Character(logic=glogic) for _ in range(self.GHOST_COUNT)]
 
         # record paku & ghost points
         self.paku.location = Location(*self.map.paku_location())
