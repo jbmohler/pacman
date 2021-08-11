@@ -20,12 +20,38 @@ oo+---------o---------+oo
 +-----------------------+
 """
 
+SIMPLE_TEST = """
++-------+
+oooo*oooo
+|o+---+o|
+|o|xxx|o|
+|o+-=-+o|
+|ooo@ooo|
++-------+
+"""
 
 class MapParseError(Exception):
     pass
 
 
 class PacmanMap:
+    """
+    >>> simple = PacmanMap.from_str(SIMPLE_TEST)
+    >>> # a global invariant
+    >>> simple[simple.paku_location()] == PacmanMap.PAKU
+    True
+    >>> simple.width, simple.height
+    (9, 7)
+    >>> simple.paku_location()
+    (4, 5)
+    >>> simple.ghost_locations()
+    [(3, 3), (4, 3), (5, 3)]
+    >>> simple.pill_locations()
+    [(4, 1)]
+    >>> len(simple.cookie_locations())
+    20
+    """
+
     DIR_MASK = 0x000F
     WALL = 0x0010
     GATE = 0x0020
