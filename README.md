@@ -1,8 +1,8 @@
-## Introduction
+# Introduction
 
 I write pacman ... because why not?
 
-## Design
+# Design
 
 The `pmlib` directory is supposed to be a pure backend with virtually no front
 end rendering assumptions.  It operates a grid with (presumed) square cells and
@@ -16,18 +16,18 @@ move distance every game iteration.  The logic function takes a `state`
 dictionary which allows the developer of the logic function to retain state
 across iterations to have a longer term plan.
 
-## Front ends
+# Front ends
 
-# Console
+## Console
 
 A proof-of-concept console rendering should be included.  It would be best
 viewed in a square font such as https://strlen.com/square/ .
 
-# Qt
+## Qt
 
 QPainter in a QWidget.
 
-# JSON websocket
+## JSON websocket
 
 Every render call sends out a (hopefully small?) updated board and this could
 be passed to a JS front-end.  Render to HTML canvas.

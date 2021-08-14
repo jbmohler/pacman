@@ -30,6 +30,7 @@ oooo*oooo
 +-------+
 """
 
+
 class MapParseError(Exception):
     pass
 
