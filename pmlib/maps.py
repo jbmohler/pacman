@@ -35,6 +35,9 @@ class MapParseError(Exception):
     pass
 
 
+# TODO:  move in Location
+
+
 class PacmanMap:
     """
     >>> simple = PacmanMap.from_str(SIMPLE_TEST)
@@ -131,3 +134,65 @@ class PacmanMap:
 
     def cookie_locations(self):
         return list(self._iter_element(self.COOKIE))
+
+    def iter_paths(self, prior, first, maxlen):
+        """
+        Iterate non-backtracking paths with no direct reversals.  Such paths
+        may have loops.
+
+        >>> simple = PacmanMap.from_str(SIMPLE_TEST)
+        >>> paths = list(simple.iter_paths(simple.paku_location(), simple.paku_location() + (1, 0), 3))
+        >>> paths[0]
+        [Location, Location, Location]
+        """
+
+        dirs = [(0, 1), (1, 0), (-1, 0), (0, -1)]
+
+        path = [first]
+
+        # terminate the recursion
+        if maxlen <= 1:
+            yield path
+            return
+
+        current = first
+
+        def wrapped(off):
+            if not 0 <= off.x < self.width:
+                return Location(off.x % self.width, off.y)
+            if not 0 <= off.y < self.height:
+                return Location(off.x, off.y % self.height)
+            return off
+
+        def is_wall(loc):
+            return self[loc] & (self.WALL | self.GATE) != 0
+
+        def adjacent(loc):
+            for d in dirs:
+                yield wrapped(loc + d)
+
+        def eligible(loc):
+            nonlocal prior
+            return not is_wall(loc) and loc != prior
+
+        # Construct a path list until a branch
+        while True:
+            open_spots = [adj for adj in adjacent(current) if eligible(adj)]
+
+            if len(open_spots) == 1:
+                path.append(open_spots[0])
+                prior = current
+                current = open_spots[0]
+                if len(path) >= maxlen:
+                    yield path
+                    break
+            elif len(open_spots) == 0:
+                # this is a dead end
+                yield path
+                break
+            else:
+                # iterate branch choices
+                for spot in open_spots:
+                    for pnext in self.iter_paths(current, spot, maxlen - len(path)):
+                        yield path + pnext
+                break

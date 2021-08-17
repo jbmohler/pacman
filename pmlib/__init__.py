@@ -1,1 +1,1 @@
-from core import PacmanBoard, play  # noqa
+from .core import PacmanBoard, play  # noqa
