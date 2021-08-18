@@ -1,3 +1,4 @@
+import time
 import random
 from . import maps
 from . import ghost_ootb
@@ -20,9 +21,23 @@ class PacmanBoard:
     CORNER_CORRECT = 0.15
     # this is the minimal amount to a corner by an AI
     WALL_BUMPER = 0.03
+    # when a location is with-in epsilon of a path, it is considered on the
+    # path; this is basically a floating point accomodation
+    EPSILON = 0.0001
 
+    # ** A note on character speed **
+    # My recollection suggests that a Pacman character should take about 2
+    # seconds to cross the board horizontally.  This is moving about 20 cells
+    # every 2 seconds or 1 cell in 0.1 seconds.  The game loop iteration
+    # cadence combined with the move-per-iteration distance governs this net
+    # speed.  The appearance of fluid movement is only acheived by preferring a
+    # small move-per-iteration and keeping the cadence high (or interval
+    # short).
+
+    # per above note: want 10 cells/sec = MOVE_DISTANCE / LOOP_SLEEP_SECONDS
     # this is the movement amount of each iteration
     MOVE_DISTANCE = 0.08
+    LOOP_SLEEP_SECONDS = 0.008
 
     #  Fickle, Chaser, Ambusher and Stupid
     #  Inky, Blinky, Pinky and Clyde
@@ -142,11 +157,43 @@ class PacmanBoard:
 
         return results
 
+    def navigate(self, location, direction):
+        # TODO:  many ill-defined elements here
+        # TODO:  must support wrap-around
+        offset = self.max_parallel(direction, self.MOVE_DISTANCE)
+
+        off_axis = direction.perpendicular()
+        axis = direction.parallel()
+
+        near = location.rounded()
+        delta = location - near
+
+        if abs(delta.x) < self.EPSILON and abs(delta.y) < self.EPSILON:
+            return location.on_axis(off_axis) + offset
+        elif delta.is_on_axis(axis):
+            # offset should not be larger than delta
+            return location + offset
+        else:
+            # first, complete to corner
+            offset = self.max_parallel(delta, self.MOVE_DISTANCE)
+            return location + offset
+
+    def follow_breadcrumbs(self, current, breadcrumbs):
+        assert len(breadcrumbs) >= 1
+
+        new_loc = self.navigate(current, breadcrumbs[0])
+        if self.is_close(new_loc, breadcrumbs[0]):
+            breadcrumbs = breadcrumbs[1:]
+
+        return new_loc, breadcrumbs
+
     def is_collided(self):
         ploc = self.paku.location
         return any(self.is_close(ploc, ghost.location) for ghost in self.ghosts)
 
     def _move_character(self, character, direction):
+        # TODO:  this appears to be redundant with navigate
+
         # TODO implement centering before turning logic (which means we may go
         # perpendicular to direction prior to going that way); we never go two
         # directions in one turn.  a character may lose a fragment of cadence
@@ -171,9 +218,19 @@ class PacmanBoard:
         self.consume_pill(self.paku.location)
 
     def play_ghost(self, ghost):
-        # We move the ghost out of the ghost box here; that is not pluggable logic.
+        # Note that ghost unhoming shall be prepared in rehome_ghost
 
-        # TODO: implement ghost unhoming
+        # TODO:  does a logic function really just return breadcrumbs
+
+        if ghost.breadcrumbs and ghost.breadcrumbs[0][0] == "recompute":
+            dir_togo = ghost.logic(self, ghost.location, ghost.state)
+
+        if ghost.breadcrumbs:
+            new_loc, bc = self.follow_breadcrumbs(ghost.location, ghost.breadcrumbs)
+
+            ghost.location = new_loc
+
+            ghost.breadcrumbs = bc
 
         dir_togo = ghost.logic(self, ghost.location, ghost.state)
 
@@ -196,6 +253,7 @@ class PacmanBoard:
                     pairs.append(gloc1, gloc2)
 
         ghost.location = random_between(*random.choose(pairs))
+        # TODO: implement ghost unhoming by means of setting the breadcrumb property
 
     def reset_characters(self):
         for ghost in self.ghosts:
@@ -232,3 +290,6 @@ def play(board, render, music):
             else:
                 music.devastated()
                 return False
+
+        # So the assumption is that the rest of this loop takes 0 time :)
+        time.sleep(board.LOOP_SLEEP_SECONDS)
