@@ -35,7 +35,59 @@ class MapParseError(Exception):
     pass
 
 
-# TODO:  move in Location
+class Location:
+    def __init__(self, x=None, y=None):
+        """
+        >>> loc = Location(1, 2)
+        >>> loc.x == loc[0]
+        True
+        >>> loc.x
+        1
+        """
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Location({self.x}, {self.y})"
+
+    def __len__(self):
+        # we masquerade as a tuple
+        return 2
+
+    def __getitem__(self, index):
+        assert type(index) is int and 0 <= index <= 1
+        return self.x if index == 0 else self.y
+
+    def manhattan(self):
+        """
+        Return the manhattan size (sum of legs of right triangle with
+        hypotenuse from origin to this point) rather than the distance from the
+        origin.   It's simple and good enough and keeps ints as ints.
+
+        >>> loc = Location(1.5, 3.)
+        >>> loc.manhattan()
+        4.5
+        >>> loc = Location(1, 3)
+        >>> loc.manhattan(), type(loc.manhattan())
+        (4, int)
+        """
+
+        return abs(self.x) + abs(self.y)
+
+    def __add__(self, other):
+        """
+        >>> l1 = Location(1, 2)
+        >>> l2 = Location(3, 4)
+        >>> l1 + (5, 6)
+        Location(6, 8)
+        >>> l1 + l2
+        Location(4, 6)
+        """
+
+        return Location(self.x + other[0], self.y + other[1])
+
+    def __sub__(self, other):
+        return Location(self.x - other[0], self.y - other[1])
 
 
 class PacmanMap:

@@ -3,61 +3,6 @@ from . import maps
 from . import ghost_ootb
 
 
-class Location:
-    def __init__(self, x=None, y=None):
-        """
-        >>> loc = Location(1, 2)
-        >>> loc.x == loc[0]
-        True
-        >>> loc.x
-        1
-        """
-        self.x = x
-        self.y = y
-
-    def __repr__(self):
-        return f"Location({self.x}, {self.y})"
-
-    def __len__(self):
-        # we masquerade as a tuple
-        return 2
-
-    def __getitem__(self, index):
-        assert type(index) is int and 0 <= index <= 1
-        return self.x if index == 0 else self.y
-
-    def manhattan(self):
-        """
-        Return the manhattan size (sum of legs of right triangle with
-        hypotenuse from origin to this point) rather than the distance from the
-        origin.   It's simple and good enough and keeps ints as ints.
-
-        >>> loc = Location(1.5, 3.)
-        >>> loc.manhattan()
-        4.5
-        >>> loc = Location(1, 3)
-        >>> loc.manhattan(), type(loc.manhattan())
-        (4, int)
-        """
-
-        return abs(self.x) + abs(self.y)
-
-    def __add__(self, other):
-        """
-        >>> l1 = Location(1, 2)
-        >>> l2 = Location(3, 4)
-        >>> l1 + (5, 6)
-        Location(6, 8)
-        >>> l1 + l2
-        Location(4, 6)
-        """
-
-        return Location(self.x + other[0], self.y + other[1])
-
-    def __sub__(self, other):
-        return Location(self.x - other[0], self.y - other[1])
-
-
 class Character:
     def __init__(self):
         self.location = None
@@ -213,7 +158,9 @@ class PacmanBoard:
         if (limit - character.location).manhattan() < self.MOVE_DISTANCE:
             distance = (limit - character.location).manhattan()
 
-        character.location += Location(distance * direction[0], distance * direction[1])
+        character.location += maps.Location(
+            distance * direction[0], distance * direction[1]
+        )
 
     def play_paku(self):
         dir_togo = self.paku.logic(self, self.paku.location, self.paku.state)
@@ -239,10 +186,10 @@ class PacmanBoard:
             offset = random.random()
             delta = l1 - l2
 
-            return l1 + Location(offset * delta[0], offset * delta[1])
+            return l1 + maps.Location(offset * delta[0], offset * delta[1])
 
         pairs = []
-        ghlocs = [Location(*g) for g in self.map.ghost_locations()]
+        ghlocs = [maps.Location(*g) for g in self.map.ghost_locations()]
         for gloc1 in ghlocs:
             for gloc2 in ghlocs:
                 if (gloc1 - gloc2).manhattan() == 1:
@@ -254,7 +201,7 @@ class PacmanBoard:
         for ghost in self.ghosts:
             self.rehome_ghost(ghost)
 
-        self.paku.location = Location(*self.map.paku_location())
+        self.paku.location = maps.Location(*self.map.paku_location())
 
 
 def play(board, render, music):
