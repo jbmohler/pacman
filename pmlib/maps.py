@@ -35,6 +35,52 @@ class MapParseError(Exception):
     pass
 
 
+class Vector:
+    def __init__(self, dx=None, dy=None):
+        """
+        >>> vec = Vector(1, 2)
+        >>> vec.dx == vec[0]
+        True
+        >>> vec.dx
+        1
+        """
+        self.dx = dx
+        self.dy = dy
+
+    def __repr__(self):
+        return f"Vector({self.dx}, {self.dy})"
+
+    def __len__(self):
+        # we masquerade as a tuple
+        return 2
+
+    def __getitem__(self, index):
+        assert type(index) is int and 0 <= index <= 1
+        return self.dx if index == 0 else self.dy
+
+    def manhattan(self):
+        """
+        Return the manhattan size (sum of legs of right triangle with
+        hdypotenuse from origin to this point) rather than the distance from the
+        origin.   It's simple and good enough and keeps ints as ints.
+
+        >>> vec = Vector(1.5, 3.)
+        >>> vec.manhattan()
+        4.5
+        >>> vec = Vector(1, 3)
+        >>> vec.manhattan(), type(vec.manhattan())
+        (4, int)
+        """
+
+        return abs(self.dx) + abs(self.dy)
+
+    def is_perpendicular(self, other: "Vector") -> bool:
+        pass  # TODO: implement
+
+    def unit(self) -> "Vector":
+        pass  # TODO: implement
+
+
 class Location:
     def __init__(self, x=None, y=None):
         """
@@ -58,23 +104,7 @@ class Location:
         assert type(index) is int and 0 <= index <= 1
         return self.x if index == 0 else self.y
 
-    def manhattan(self):
-        """
-        Return the manhattan size (sum of legs of right triangle with
-        hypotenuse from origin to this point) rather than the distance from the
-        origin.   It's simple and good enough and keeps ints as ints.
-
-        >>> loc = Location(1.5, 3.)
-        >>> loc.manhattan()
-        4.5
-        >>> loc = Location(1, 3)
-        >>> loc.manhattan(), type(loc.manhattan())
-        (4, int)
-        """
-
-        return abs(self.x) + abs(self.y)
-
-    def __add__(self, other):
+    def __add__(self, other: Vector) -> "Location":
         """
         >>> l1 = Location(1, 2)
         >>> l2 = Location(3, 4)
@@ -86,8 +116,11 @@ class Location:
 
         return Location(self.x + other[0], self.y + other[1])
 
-    def __sub__(self, other):
+    def __sub__(self, other: "Location") -> Vector:
         return Location(self.x - other[0], self.y - other[1])
+
+    def rounded(self) -> "Location":
+        pass  # TODO: implement
 
 
 class PacmanMap:

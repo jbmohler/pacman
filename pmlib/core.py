@@ -71,17 +71,17 @@ class PacmanBoard:
         self.reset_characters()
 
     def is_cleared(self):
-        return len(self.cookies) > 0
+        return len(self.cookies + self.pills) > 0
 
     @classmethod
     def is_close(cls, loc1, loc2):
         return (loc1 - loc2).manhattan() < cls.COLLISION_CLOSE
 
     def wall_limit_from(self, loc, direction):
-        walls = self.map.WALL
+        walls = self.map.WALL | self.map.GATE
 
         current = loc.rounded()
-        assert self.map.get[current] & walls == 0, "cannot go any direction _in_ a wall"
+        assert self.map.get[current] & walls == 0, "invalid location in wall"
 
         delta = loc - current
 
@@ -91,14 +91,10 @@ class PacmanBoard:
         # to check contact with diagonal cell, in that case the character
         # motion code will first center on the perpendicular travel route.
 
-        if direction[0] == 0 and abs(delta[0]) > self.CORNER_CORRECT:
-            delta1 = 1 if delta[0] > 0 else -1
-            diagonal = current + (delta1, direction[1])
-            if self.map[diagonal] & walls:
-                limit = current + direction
-        if direction[1] == 0 and abs(delta[1]) > self.CORNER_CORRECT:
-            delta1 = 1 if delta[1] > 0 else -1
-            diagonal = current + (direction[0], delta1)
+        if delta.manhattan() > self.CORNER_CORRECT and delta.is_perpendicular(
+            direction
+        ):
+            diagonal = current + delta.unit() + direction
             if self.map[diagonal] & walls:
                 limit = current + direction
 
@@ -157,25 +153,30 @@ class PacmanBoard:
 
         return results
 
+    def max_parallel(self, direction, distance):
+        # TODO:  implement but details our unsatisfactory
+
+        # return the largest vector in the direction `direction` which is legal
+        # and does not exceed length `distance`.
+        pass
+
     def navigate(self, location, direction):
-        # TODO:  many ill-defined elements here
         # TODO:  must support wrap-around
-        offset = self.max_parallel(direction, self.MOVE_DISTANCE)
 
-        off_axis = direction.perpendicular()
-        axis = direction.parallel()
+        grid_corner = location.rounded()
+        delta = grid_corner - location
 
-        near = location.rounded()
-        delta = location - near
+        # We may go perpendicular to direction prior to going in the direction
+        # `direction`; we never go two directions in one turn.  a character may
+        # lose a fragment of cadence in a turn.
 
-        if abs(delta.x) < self.EPSILON and abs(delta.y) < self.EPSILON:
-            return location.on_axis(off_axis) + offset
-        elif delta.is_on_axis(axis):
-            # offset should not be larger than delta
-            return location + offset
-        else:
+        if delta.manhattan() > self.EPSILON and delta.is_perpendicular(direction):
             # first, complete to corner
             offset = self.max_parallel(delta, self.MOVE_DISTANCE)
+            return location + offset
+        else:
+            offset = self.max_parallel(direction, self.MOVE_DISTANCE)
+            # TODO:  snap to axis of travel
             return location + offset
 
     def follow_breadcrumbs(self, current, breadcrumbs):
@@ -193,11 +194,6 @@ class PacmanBoard:
 
     def _move_character(self, character, direction):
         # TODO:  this appears to be redundant with navigate
-
-        # TODO implement centering before turning logic (which means we may go
-        # perpendicular to direction prior to going that way); we never go two
-        # directions in one turn.  a character may lose a fragment of cadence
-        # in a turn
 
         limit = self.wall_limit_from(character.location, direction)
 
