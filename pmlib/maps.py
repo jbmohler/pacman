@@ -201,6 +201,19 @@ class PacmanMap:
         # TODO :  is this really correct compared to the parser?
         return self.grid[index[0] * self.width + index[1]]
 
+    def wrapped(self, off):
+        if not 0 <= off.x < self.width:
+            return Location(off.x % self.width, off.y)
+        if not 0 <= off.y < self.height:
+            return Location(off.x, off.y % self.height)
+        return off
+
+    def adjacent(self, loc):
+        dirs = [(0, 1), (1, 0), (-1, 0), (0, -1)]
+
+        for d in dirs:
+            yield self.wrapped(loc + d)
+
     def _iter_element(self, elt):
         for x, y in itertools.product(range(self.width), range(self.height)):
             if self[x, y] & elt:
@@ -231,8 +244,6 @@ class PacmanMap:
         [Location, Location, Location]
         """
 
-        dirs = [(0, 1), (1, 0), (-1, 0), (0, -1)]
-
         path = [first]
 
         # terminate the recursion
@@ -242,19 +253,8 @@ class PacmanMap:
 
         current = first
 
-        def wrapped(off):
-            if not 0 <= off.x < self.width:
-                return Location(off.x % self.width, off.y)
-            if not 0 <= off.y < self.height:
-                return Location(off.x, off.y % self.height)
-            return off
-
         def is_wall(loc):
             return self[loc] & (self.WALL | self.GATE) != 0
-
-        def adjacent(loc):
-            for d in dirs:
-                yield wrapped(loc + d)
 
         def eligible(loc):
             nonlocal prior
@@ -262,7 +262,7 @@ class PacmanMap:
 
         # Construct a path list until a branch
         while True:
-            open_spots = [adj for adj in adjacent(current) if eligible(adj)]
+            open_spots = [adj for adj in self.adjacent(current) if eligible(adj)]
 
             if len(open_spots) == 1:
                 path.append(open_spots[0])
@@ -281,3 +281,31 @@ class PacmanMap:
                     for pnext in self.iter_paths(current, spot, maxlen - len(path)):
                         yield path + pnext
                 break
+
+    def iter_ghost_unhome_paths(self):
+        """
+        This should accomodate multiple ghost boxes of arbitrary size.
+        However, it assumes that each such ghost box has a walled border
+        (although it probably supports multiple gates in a single box).  This
+        is a building block for placing a ghost in a ghost box and preparing
+        it's path to leave.
+
+        >>> simple = PacmanMap.from_str(SIMPLE_TEST)
+        >>> paths = list(simple.iter_ghost_unhome_paths())
+        >>> len(paths)
+        2
+        >>> len(paths[0]), paths[0][:-1]
+        (3, [Location(4, 4), Location(4, 3)])
+        >>> len(paths[1]), paths[1][:-1]
+        (3, [Location(4, 4), Location(4, 3)])
+        """
+        ghbox = self.WALL | self.GATE | self.GHOST
+        ghcount = len(self.ghost_locations())
+
+        for gate in self._iter_element(self.GATE):
+            outside = [out for out in self.adjacent(gate) if self[out] & ghbox == 0]
+            assert len(outside) == 1
+            outside = outside[0]
+
+            for path in self.iter_paths(self, outside, gate, ghcount + 1):
+                yield path
