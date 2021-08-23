@@ -2,3 +2,6 @@
 # dev
 black
 flake8
+
+# artwork generation
+Pillow

@@ -86,6 +86,68 @@ def draw_interior_arc_wall(img, start, end):
         width=0,
     )
 
+def draw_exterior_arc_wall(img, cx, cy):
+    # This is a little different than the other helper functions:  cx & cy just
+    # indicate which corner centers this arc with each being 0/1.
+
+    centx, centy = None, None
+    start, end = None, None
+    if cx == 0 and cy == 0:
+        centx, centy = 0, 0
+        start, end = 0, 90
+    if cx == 0 and cy == 1:
+        centx, centy = 0, Dimn.CELL_WIDTH
+        start, end = 270, 360
+    if cx == 1 and cy == 0:
+        centx, centy = Dimn.CELL_WIDTH, 0
+        start, end = 90, 180
+    if cx == 1 and cy == 1:
+        centx, centy = Dimn.CELL_WIDTH, Dimn.CELL_WIDTH
+        start, end = 180, 270
+
+    #start, end = 0, 360
+
+    draw = ImageDraw.Draw(img)
+    width = Dimn.WALL_HIGHLIGHTS + 1
+    margin = Dimn.WALL_MARGIN + width
+    draw.arc(
+        [centx - margin, centy - margin, centx + margin, centy + margin],
+        start,
+        end,
+        fill=Colors.WALL_HIGHLIGHTS,
+        width=width,
+    )
+    width = 2 * Dimn.WALL_HIGHLIGHTS + 1
+    margin = Dimn.WALL_MARGIN + 1 * Dimn.WALL_HIGHLIGHTS + width
+    draw.arc(
+        [centx - margin, centy - margin, centx + margin, centy + margin],
+        start,
+        end,
+        fill=Colors.WALL_INSET,
+        width=width,
+    )
+    width = Dimn.WALL_HIGHLIGHTS + 1
+    margin = Dimn.WALL_MARGIN + 3 * Dimn.WALL_HIGHLIGHTS + width
+    draw.arc(
+        [centx - margin, centy - margin, centx + margin, centy + margin],
+        start,
+        end,
+        fill=Colors.WALL_HIGHLIGHTS,
+        width=width,
+    )
+
+    # this arc for the main part of the wall is reduced in width because it
+    # overwrites other corners (imperfect hackery here)
+    width = Dimn.CELL_WIDTH - 2 * Dimn.WALL_MARGIN - 8 * Dimn.WALL_HIGHLIGHTS + 2 - 2 * Dimn.WALL_HIGHLIGHTS
+    margin = Dimn.WALL_MARGIN + 4 * Dimn.WALL_HIGHLIGHTS + width
+    draw.arc(
+        [centx - margin, centy - margin, centx + margin, centy + margin],
+        start,
+        end,
+        fill=Colors.WALL_MAIN,
+        width=width,
+    )
+
 
 def draw_straight_wall(img, xy_swap, left, right):
     draw = ImageDraw.Draw(img)
@@ -185,6 +247,37 @@ def draw_wall_0010():
     img.save(os.path.join(ARTDIR, "wall-0010.png"))
 
 
+def draw_wall_1111():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_exterior_arc_wall(img, 0, 0)
+    draw_exterior_arc_wall(img, 0, 1)
+    draw_exterior_arc_wall(img, 1, 0)
+    draw_exterior_arc_wall(img, 1, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-1111.png"))
+
+
+def draw_wall_1110():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_vert_wall(img, 0, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 1, 0)
+    draw_exterior_arc_wall(img, 1, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-1110.png"))
+
+
+def draw_wall_1101():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_hori_wall(img, 0, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 0, 0)
+    draw_exterior_arc_wall(img, 1, 0)
+
+    img.save(os.path.join(ARTDIR, "wall-1101.png"))
+
+
 if __name__ == "__main__":
     draw_wall_0000()
     draw_wall_0100()
@@ -193,3 +286,6 @@ if __name__ == "__main__":
     draw_wall_1000()
     draw_wall_0010()
     draw_wall_1010()
+    draw_wall_1111()
+    draw_wall_1101()
+    draw_wall_1110()
