@@ -258,14 +258,24 @@ def draw_wall_1111():
     img.save(os.path.join(ARTDIR, "wall-1111.png"))
 
 
-def draw_wall_1110():
+def draw_wall_0111():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_hori_wall(img, 0, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 0, 1)
+    draw_exterior_arc_wall(img, 1, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-0111.png"))
+
+
+def draw_wall_1011():
     img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
 
     draw_vert_wall(img, 0, Dimn.CELL_WIDTH)
-    draw_exterior_arc_wall(img, 1, 0)
-    draw_exterior_arc_wall(img, 1, 1)
+    draw_exterior_arc_wall(img, 0, 0)
+    draw_exterior_arc_wall(img, 0, 1)
 
-    img.save(os.path.join(ARTDIR, "wall-1110.png"))
+    img.save(os.path.join(ARTDIR, "wall-1011.png"))
 
 
 def draw_wall_1101():
@@ -278,6 +288,70 @@ def draw_wall_1101():
     img.save(os.path.join(ARTDIR, "wall-1101.png"))
 
 
+def draw_wall_1101():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_hori_wall(img, 0, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 0, 0)
+    draw_exterior_arc_wall(img, 1, 0)
+
+    img.save(os.path.join(ARTDIR, "wall-1101.png"))
+
+
+def draw_wall_1110():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_vert_wall(img, 0, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 1, 0)
+    draw_exterior_arc_wall(img, 1, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-1110.png"))
+
+
+def draw_wall_0110():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_interior_arc_wall(img, 180, 270)
+    draw_vert_wall(img, Dimn.CELL_WIDTH / 2, Dimn.CELL_WIDTH)
+    draw_hori_wall(img, Dimn.CELL_WIDTH / 2, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 1, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-0110.png"))
+
+
+def draw_wall_0011():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_interior_arc_wall(img, 270, 360)
+    draw_vert_wall(img, Dimn.CELL_WIDTH / 2, Dimn.CELL_WIDTH)
+    draw_hori_wall(img, 0, Dimn.CELL_WIDTH / 2)
+    draw_exterior_arc_wall(img, 0, 1)
+
+    img.save(os.path.join(ARTDIR, "wall-0011.png"))
+
+
+def draw_wall_1001():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_interior_arc_wall(img, 0, 90)
+    draw_vert_wall(img, 0, Dimn.CELL_WIDTH / 2)
+    draw_hori_wall(img, 0, Dimn.CELL_WIDTH / 2)
+    draw_exterior_arc_wall(img, 0, 0)
+
+    img.save(os.path.join(ARTDIR, "wall-1001.png"))
+
+
+def draw_wall_1100():
+    img = Image.new("RGBA", (Dimn.CELL_WIDTH, Dimn.CELL_WIDTH), (0, 0, 0, 0))
+
+    draw_interior_arc_wall(img, 90, 180)
+    draw_vert_wall(img, 0, Dimn.CELL_WIDTH / 2)
+    draw_hori_wall(img, Dimn.CELL_WIDTH / 2, Dimn.CELL_WIDTH)
+    draw_exterior_arc_wall(img, 1, 0)
+
+    img.save(os.path.join(ARTDIR, "wall-1100.png"))
+
+
 if __name__ == "__main__":
     draw_wall_0000()
     draw_wall_0100()
@@ -287,5 +361,11 @@ if __name__ == "__main__":
     draw_wall_0010()
     draw_wall_1010()
     draw_wall_1111()
+    draw_wall_0111()
+    draw_wall_1011()
     draw_wall_1101()
     draw_wall_1110()
+    draw_wall_0110()
+    draw_wall_0011()
+    draw_wall_1001()
+    draw_wall_1100()
