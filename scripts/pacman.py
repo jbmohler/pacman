@@ -16,9 +16,17 @@ def cli_render(board):
     raise NotImplementedError()
 
 
-if __name__ == "__main__":
+def cli_pacman():
     board = pmlib.PacmanBoard()
 
     board.load_from_string(pmlib.level1)
 
     pmlib.play(board, cli_render, Music())
+
+def qt_pacman():
+    import qtpacman
+
+    qtpacman.main()
+
+if __name__ == "__main__":
+    qt_pacman()

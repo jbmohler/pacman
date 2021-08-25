@@ -1,6 +1,9 @@
 # Introduction
 
-I write pacman ... because why not?
+Here is a pacman clone simply because I enjoy reproducing games with gameplay
+faithful to the original.  Pacman has introduced a number of interesting
+wrinkles that I haven't covered before -- important gameplay sound, (basic)
+path finding and interesting artwork.
 
 # Design
 
@@ -28,6 +31,9 @@ These list of adjacent cells through which to navigate are called "bread-crumb
 trails".
 
 # Front ends
+
+I generate the walls as png files for each grid cell and painted directly
+against each other.  See the artwork folder for the source files.
 
 ## Console
 

@@ -76,7 +76,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mainlay.addWidget(self.board)
 
 
-if __name__ == "__main__":
+def main():
     app = QtWidgets.QApplication([])
 
     app.main = MainWindow()
