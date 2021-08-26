@@ -1,4 +1,5 @@
 import os
+import pmlib
 from PySide6 import QtCore, QtWidgets, QtGui
 
 ROOTDIR = os.path.dirname(os.path.dirname(os.path.normpath(__file__)))
@@ -14,6 +15,15 @@ class PacmanWidget(QtWidgets.QWidget):
 
         self._pixmaps = {}
 
+    @property
+    def logic(self):
+        return self._logic
+
+    @logic.setter
+    def logic(self, v):
+        self._logic = v
+        self.update()
+
     def cached_wall_pixmap(self, bits):
         if bits not in self._pixmaps:
             pngfile = os.path.join(ARTDIR, f"wall-{bits}.png")
@@ -27,6 +37,21 @@ class PacmanWidget(QtWidgets.QWidget):
         def paint_cell(cx, cy, pixmap):
             painter.drawPixmap(cx * 32, cy * 32, 32, 32, pixmap)
 
+        def mask_to_suffix(cell):
+            ordered = [1, 2, 4, 8]
+            return "".join([str((cell & bit) // bit) for bit in ordered])
+
+        pmmap = self.logic.map
+
+        for ii in range(pmmap.width):
+            for jj in range(pmmap.height):
+                cell = pmmap[ii, jj]
+
+                if cell & pmmap.WALL != 0:
+                    suffix = mask_to_suffix(cell)
+                    paint_cell(ii, jj, self.cached_wall_pixmap(suffix))
+
+    def _unused_example(self, paint_cell):
         paint_cell(2, 2, self.cached_wall_pixmap("0110"))
         paint_cell(3, 2, self.cached_wall_pixmap("0101"))
         paint_cell(4, 2, self.cached_wall_pixmap("0111"))
@@ -67,6 +92,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
+        self.setWindowTitle("Pacman")
+
+        self.make_menu_bar()
+
         self.main = QtWidgets.QWidget()
         self.setCentralWidget(self.main)
 
@@ -74,6 +103,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.board = PacmanWidget()
         self.mainlay.addWidget(self.board)
+
+        self.new()
+
+    def make_menu_bar(self):
+        mb = self.menuBar()
+
+        game = mb.addMenu("&Game")
+        game.addAction("New").triggered.connect(self.new)
+        game.addAction("Exit").triggered.connect(self.close)
+
+    def new(self):
+        self.logic = pmlib.PacmanBoard()
+
+        self.logic.load_from_string(pmlib.level1)
+
+        self.board.logic = self.logic
 
 
 def main():
